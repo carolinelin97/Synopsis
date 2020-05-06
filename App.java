@@ -1,5 +1,6 @@
 package com.codebind;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -10,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.Buffer;
 import java.util.ArrayList;
 
 public class App {
@@ -23,6 +25,9 @@ public class App {
     private JButton StopButton;
     private JLabel ImageLabel;
     private JLabel SynopsisLabel;
+    Timer timer;
+    int index = 0;
+    String resourcePath = "C:\\Users\\carol\\Downloads\\CSCI576ProjectMedia\\CSCI576ProjectMedia\\576RGBVideo1\\image-0001.rgb";;
 
     public App() {
         panelMain.setBorder(new EmptyBorder(5,5,5,5));
@@ -30,17 +35,28 @@ public class App {
         PlayButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                String imgPath = "C:\\Users\\carol\\Downloads\\CSCI576ProjectMedia\\CSCI576ProjectMedia\\Image\\RGB\\image-0010.rgb";
-//                showImage(imgPath);
-                showVideo(imgPath);
+//                showImage(resourcePath);
+                showVideo(resourcePath);
+
+
             }
         });
 
         PauseButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-//                String imgPath = "C:\\Users\\carol\\Downloads\\CSCI576ProjectMedia\\CSCI576ProjectMedia\\Image\\RGB\\image-0023.rgb";
-//                showVideo(imgPath);
+                if (timer.isRunning()){
+                    timer.stop();
+                }
+            }
+        });
+
+        StopButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                index = 0;
+                timer.stop();
+                showImage(resourcePath);
             }
         });
     }
@@ -97,9 +113,8 @@ public class App {
         ImageLabel.setIcon(new ImageIcon(img));
         ImageLabel.paintComponents(ImageLabel.getGraphics());
         ImageLabel.repaint();
-        frame.pack();
-        frame.setVisible(true);
     }
+
 
     private void showVideo(String imgPath){
         File tempFile =new File(imgPath.trim());
@@ -120,20 +135,26 @@ public class App {
                     flag = true;
                 }
                 if (flag) {
-                    System.out.println("文     件：" + tempList[i].getName());
+//                    System.out.println("文     件：" + tempList[i].getName());
                     files.add(tempList[i].getName().toString());
                 }
             }
         }
 
-
-        try{
-            showImage(imgDir+img);
-            Thread.sleep(500);
-//            showImage(imgDir+files.get(6));
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        timer = new Timer(33,new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try{
+                    showImage(imgDir + files.get(index));
+                    System.out.println(index);
+                    index++;
+                } catch (Exception exc){
+                    exc.printStackTrace();
+                }
+            }
+        });
+        if (!timer.isRunning())
+            timer.start();
     }
 
     public static void main(String[] args) {
