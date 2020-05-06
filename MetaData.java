@@ -9,6 +9,14 @@ public class MetaData {
         this.path = "";
     }
 
+    public String getPath() {
+        return path;
+    }
+
+    public char getType() {
+        return type;
+    }
+
     public void showMetaData(){
         System.out.println(type + " " + path);
     }

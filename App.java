@@ -6,6 +6,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,50 +27,95 @@ public class App {
     private JButton StopButton;
     private JLabel ImageLabel;
     private JLabel SynopsisLabel;
+
     Timer timer;
-    int index = 0;
-    String resourcePath = "C:\\Users\\carol\\Downloads\\CSCI576ProjectMedia\\CSCI576ProjectMedia\\576RGBVideo1\\image-2400.rgb";;
-    PlaySound bgMusic = new PlaySound();
+    int index = 0;      // Pseudo Video Starting Frame Index
+    Boolean flag = true;
+
     MetaData[] metaData = new MetaData[20];
 
+    // Image/Video Resource (from synopsis image click event)
+    String resourcePath;
+    char resourceType;
+
+    // Sound
+    PlaySound bgMusic = new PlaySound();
+
+
+    // Constructor
     public App() {
-        panelMain.setBorder(new EmptyBorder(5,5,5,5));
+
+        // Load MetaData
         MetaDataLoader metaDataLoader = new MetaDataLoader();
-        metaDataLoader.loadMetaData("src\\com\\codebind\\metadata.txt");
+        metaDataLoader.loadMetaData("metadata.txt");
         metaData = metaDataLoader.getMetaData();
-        for (int i = 0; i < 20; i++){
-            metaData[i].showMetaData();
-        }
+//        for (int i = 0; i < 20; i++)    metaData[i].showMetaData();
 
-        
+
+        // Load Synopsis Image
+        BufferedImage synImg = new BufferedImage(1000, 200, BufferedImage.TYPE_INT_RGB);
+        readImageRGB("synopsis.rgb", synImg, 1000, 200);
+        SynopsisLabel.setIcon(new ImageIcon(synImg));
+
+        // Define Timer
+        timer = new Timer(33, null);
+
+        // Play Button
         PlayButton.addActionListener(actionEvent -> {
-//                showImage(resourcePath);
-            showVideo(resourcePath);
+            // Button Only Available When Playing Video
+            if (resourceType == 'V' && !timer.isRunning())
+                showVideo(resourcePath);
         });
 
+        // Pause Button
         PauseButton.addActionListener(actionEvent -> {
-            if (timer.isRunning()){
-                timer.stop();
-            }
-            if (bgMusic.getStatus() == "play"){
-                bgMusic.pause();
+            // Button Only Available When Playing Video
+            if (resourceType == 'V'){
+                if (timer.isRunning()){
+                    timer.stop();
+                }
+                if (bgMusic.getStatus() == "play"){
+                    bgMusic.pause();
+                }
             }
         });
 
+        // Stop Button
         StopButton.addActionListener(actionEvent -> {
-            index = 0;
-            timer.stop();
-            showImage(resourcePath);
-            bgMusic.stop();
+            // Button Only Available When Playing Video
+            if (resourceType == 'V'){
+                index = 0;      // Go back to the beginning of the video
+                timer.stop();
+                showImage(resourcePath);
+                bgMusic.stop();
+            }
+        });
+
+        // Synopsis Image Click Event Links To Resource
+        SynopsisLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (!timer.isRunning()){
+                    super.mouseClicked(e);
+                    Point point = e.getPoint();
+                    int x = (int)point.getX();
+                    int y = (int)point.getY();
+
+                    // Get resource index by location in synopsis image
+                    int idx = Math.floorDiv(x, 100) + Math.floorDiv(y, 100) * 10;
+                    resourcePath = metaData[idx].getPath();
+                    resourceType = metaData[idx].getType();
+                    showImage(resourcePath);
+                    bgMusic.setStatus("null");
+                }
+            }
         });
     }
 
-    private void readImageRGB(String imgPath, BufferedImage img)
+    private void readImageRGB(String imgPath, BufferedImage img, int width, int height)
     {
         try
         {
-            int width = 352;
-            int height = 288;
             int frameLength = width*height*3;
 
             File file = new File(imgPath);
@@ -109,9 +156,8 @@ public class App {
     }
 
     private void showImage(String imgPath){
-//        String imgPath = "C:\\Users\\carol\\Downloads\\CSCI576ProjectMedia\\CSCI576ProjectMedia\\Image\\RGB\\image-0003.rgb";
         BufferedImage img = new BufferedImage(352, 288, BufferedImage.TYPE_INT_RGB);
-        readImageRGB(imgPath, img);
+        readImageRGB(imgPath, img, 352, 288);
         ImageLabel.setIcon(new ImageIcon(img));
         ImageLabel.paintComponents(ImageLabel.getGraphics());
         ImageLabel.repaint();
@@ -123,45 +169,48 @@ public class App {
         String img = tempFile.getName();
         String imgDir = imgPath.substring(0, imgPath.lastIndexOf("\\")+1);
 
+        // Get image file list under the folder
         ArrayList<String> files = new ArrayList<String>();
         File file = new File(imgDir);
         File[] tempList = file.listFiles();
 
-        Boolean flag = false;
+        // Choose the images to be played as video
+        Boolean start = false;
         for (int i = 0; i < tempList.length; i++) {
             if (tempList[i].isFile()) {
                 if (tempList[i].getName().equals(img)){
-                    flag = true;
+                    start = true;
                 }
-                if (flag) {
-//                    System.out.println("文     件：" + tempList[i].getName());
+                if (start) {
                     files.add(tempList[i].getName().toString());
                 }
             }
         }
 
-
-        timer = new Timer(33,new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try{
-                    showImage(imgDir + files.get(index));
-//                    System.out.println(index);
-                    index++;
-                    if (index == files.size()){
-                        index = 0;
-                        ((Timer)e.getSource()).stop();
+        // Make sure ActionListener of timer is only defined once
+        if (flag){
+            timer.addActionListener(new ActionListener(){
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try{
+                        showImage(imgDir + files.get(index));
+                        index++;
+                        if (index == files.size()){
+                            index = 0;
+                            ((Timer)e.getSource()).stop();
+                        }
+                    } catch (Exception exc){
+                        exc.printStackTrace();
                     }
-                } catch (Exception exc){
-                    exc.printStackTrace();
                 }
-            }
-        });
-        if (!timer.isRunning()){
-            timer.start();
-            playMusic(resourcePath);
+            });
+            flag = false;
         }
 
+        if (!timer.isRunning()){
+            playMusic(resourcePath);
+            timer.start();
+        }
     }
 
     private void playMusic(String imgPath){
@@ -177,10 +226,6 @@ public class App {
         frame = new JFrame("App");
         frame.setContentPane(new App().panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-
-
-
         frame.pack();
         frame.setVisible(true);
     }
