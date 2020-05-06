@@ -29,38 +29,37 @@ public class App {
     int index = 0;
     String resourcePath = "C:\\Users\\carol\\Downloads\\CSCI576ProjectMedia\\CSCI576ProjectMedia\\576RGBVideo1\\image-2400.rgb";;
     PlaySound bgMusic = new PlaySound();
+    MetaData[] metaData = new MetaData[20];
 
     public App() {
         panelMain.setBorder(new EmptyBorder(5,5,5,5));
+        MetaDataLoader metaDataLoader = new MetaDataLoader();
+        metaDataLoader.loadMetaData("src\\com\\codebind\\metadata.txt");
+        metaData = metaDataLoader.getMetaData();
+        for (int i = 0; i < 20; i++){
+            metaData[i].showMetaData();
+        }
 
-        PlayButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
+        
+        PlayButton.addActionListener(actionEvent -> {
 //                showImage(resourcePath);
-                showVideo(resourcePath);
-            }
+            showVideo(resourcePath);
         });
 
-        PauseButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                if (timer.isRunning()){
-                    timer.stop();
-                }
-                if (bgMusic.getStatus() == "play"){
-                    bgMusic.pause();
-                }
-            }
-        });
-
-        StopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                index = 0;
+        PauseButton.addActionListener(actionEvent -> {
+            if (timer.isRunning()){
                 timer.stop();
-                showImage(resourcePath);
-                bgMusic.stop();
             }
+            if (bgMusic.getStatus() == "play"){
+                bgMusic.pause();
+            }
+        });
+
+        StopButton.addActionListener(actionEvent -> {
+            index = 0;
+            timer.stop();
+            showImage(resourcePath);
+            bgMusic.stop();
         });
     }
 
@@ -178,6 +177,10 @@ public class App {
         frame = new JFrame("App");
         frame.setContentPane(new App().panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+
+
+
         frame.pack();
         frame.setVisible(true);
     }
