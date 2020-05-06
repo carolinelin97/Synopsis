@@ -27,7 +27,8 @@ public class App {
     private JLabel SynopsisLabel;
     Timer timer;
     int index = 0;
-    String resourcePath = "C:\\Users\\carol\\Downloads\\CSCI576ProjectMedia\\CSCI576ProjectMedia\\576RGBVideo1\\image-0001.rgb";;
+    String resourcePath = "C:\\Users\\carol\\Downloads\\CSCI576ProjectMedia\\CSCI576ProjectMedia\\576RGBVideo1\\image-2400.rgb";;
+    PlaySound bgMusic = new PlaySound();
 
     public App() {
         panelMain.setBorder(new EmptyBorder(5,5,5,5));
@@ -37,8 +38,6 @@ public class App {
             public void actionPerformed(ActionEvent actionEvent) {
 //                showImage(resourcePath);
                 showVideo(resourcePath);
-
-
             }
         });
 
@@ -47,6 +46,9 @@ public class App {
             public void actionPerformed(ActionEvent actionEvent) {
                 if (timer.isRunning()){
                     timer.stop();
+                }
+                if (bgMusic.getStatus() == "play"){
+                    bgMusic.pause();
                 }
             }
         });
@@ -57,6 +59,7 @@ public class App {
                 index = 0;
                 timer.stop();
                 showImage(resourcePath);
+                bgMusic.stop();
             }
         });
     }
@@ -117,12 +120,9 @@ public class App {
 
 
     private void showVideo(String imgPath){
-        File tempFile =new File(imgPath.trim());
+        File tempFile = new File(imgPath.trim());
         String img = tempFile.getName();
         String imgDir = imgPath.substring(0, imgPath.lastIndexOf("\\")+1);
-
-//        System.out.println(img);
-//        System.out.println(imgDir);
 
         ArrayList<String> files = new ArrayList<String>();
         File file = new File(imgDir);
@@ -141,20 +141,37 @@ public class App {
             }
         }
 
+
         timer = new Timer(33,new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try{
                     showImage(imgDir + files.get(index));
-                    System.out.println(index);
+//                    System.out.println(index);
                     index++;
+                    if (index == files.size()){
+                        index = 0;
+                        ((Timer)e.getSource()).stop();
+                    }
                 } catch (Exception exc){
                     exc.printStackTrace();
                 }
             }
         });
-        if (!timer.isRunning())
+        if (!timer.isRunning()){
             timer.start();
+            playMusic(resourcePath);
+        }
+
+    }
+
+    private void playMusic(String imgPath){
+        if (bgMusic.getStatus() == "null"){
+            bgMusic.Play(imgPath);
+        }
+        if (bgMusic.getStatus() == "pause"){
+            bgMusic.resume();
+        }
     }
 
     public static void main(String[] args) {
