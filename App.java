@@ -32,7 +32,7 @@ public class App {
     int index = 0;      // Pseudo Video Starting Frame Index
     Boolean flag = true;
 
-    MetaData[] metaData = new MetaData[20];
+    MetaData[] metaData;
 
     // Image/Video Resource (from synopsis image click event)
     String resourcePath;
@@ -49,12 +49,12 @@ public class App {
         MetaDataLoader metaDataLoader = new MetaDataLoader();
         metaDataLoader.loadMetaData("metadata.txt");
         metaData = metaDataLoader.getMetaData();
-//        for (int i = 0; i < 20; i++)    metaData[i].showMetaData();
+        for (int i = 0; i < 20; i++)    metaData[i].showMetaData();
 
 
         // Load Synopsis Image
         BufferedImage synImg = new BufferedImage(1000, 200, BufferedImage.TYPE_INT_RGB);
-        readImageRGB("synopsis.rgb", synImg, 1000, 200);
+        readImageRGB("MySynopsis.rgb", synImg, 1000, 200);
         SynopsisLabel.setIcon(new ImageIcon(synImg));
 
         // Define Timer
@@ -104,6 +104,7 @@ public class App {
                     // Get resource index by location in synopsis image
                     int idx = Math.floorDiv(x, 100) + Math.floorDiv(y, 100) * 10;
                     resourcePath = metaData[idx].getPath();
+                    System.out.println(resourcePath);
                     resourceType = metaData[idx].getType();
                     showImage(resourcePath);
                     bgMusic.setStatus("null");
@@ -167,7 +168,7 @@ public class App {
     private void showVideo(String imgPath){
         File tempFile = new File(imgPath.trim());
         String img = tempFile.getName();
-        String imgDir = imgPath.substring(0, imgPath.lastIndexOf("\\")+1);
+        String imgDir = imgPath.substring(0, imgPath.lastIndexOf("/")+1);
 
         // Get image file list under the folder
         ArrayList<String> files = new ArrayList<String>();

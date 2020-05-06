@@ -33,10 +33,10 @@ public class PlaySound {
 
     public void Play(String imgPath){
         try{
-            int framePos = Integer.parseInt(imgPath.substring(imgPath.lastIndexOf("\\")+7, imgPath.length()-4));
+            int framePos = Integer.parseInt(imgPath.substring(imgPath.lastIndexOf("/")+7, imgPath.length()-4));
             clipTimePosition = (long)(framePos / 29.97 * 1000000);
             System.out.println(clipTimePosition);
-            String audioPath = imgPath.substring(0, imgPath.lastIndexOf("\\")+1) + "audio.wav";
+            String audioPath = imgPath.substring(0, imgPath.lastIndexOf("/")+1) + "audio.wav";
             File file = new File(audioPath);
             if (file.exists()){
                 // read wav file to audio stream
