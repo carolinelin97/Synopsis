@@ -1,11 +1,9 @@
 package com.codebind;
 
-import javax.imageio.ImageIO;
+import java.util.Date;
+import java.util.Timer;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -13,8 +11,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.Buffer;
 import java.util.ArrayList;
+
+import java.util.TimerTask;
 
 public class App {
     private static JFrame frame;
@@ -29,8 +28,8 @@ public class App {
     private JLabel SynopsisLabel;
 
     Timer timer;
+    String status;
     int index = 0;      // Pseudo Video Starting Frame Index
-    Boolean flag = true;
 
     MetaData[] metaData;
 
@@ -57,22 +56,25 @@ public class App {
         readImageRGB("MySynopsis.rgb", synImg, 1000, 200);
         SynopsisLabel.setIcon(new ImageIcon(synImg));
 
-        // Define Timer
-        timer = new Timer(33, null);
+        timer = new Timer();
+        status = "null";
 
         // Play Button
         PlayButton.addActionListener(actionEvent -> {
             // Button Only Available When Playing Video
-            if (resourceType == 'V' && !timer.isRunning())
+            if (resourceType == 'V' && status != "play"){
                 showVideo(resourcePath);
+                status = "play";
+            }
         });
 
         // Pause Button
         PauseButton.addActionListener(actionEvent -> {
             // Button Only Available When Playing Video
             if (resourceType == 'V'){
-                if (timer.isRunning()){
-                    timer.stop();
+                if (status == "play"){
+                    timer.cancel();
+                    status = "pause";
                 }
                 if (bgMusic.getStatus() == "play"){
                     bgMusic.pause();
@@ -85,9 +87,13 @@ public class App {
             // Button Only Available When Playing Video
             if (resourceType == 'V'){
                 index = 0;      // Go back to the beginning of the video
-                timer.stop();
+                timer.cancel();
+
+                String temp = resourcePath.substring(0, resourcePath.lastIndexOf("/")+1) + "image-0001.rgb";
+                resourcePath = temp;
                 showImage(resourcePath);
                 bgMusic.stop();
+                status = "null";
             }
         });
 
@@ -95,7 +101,7 @@ public class App {
         SynopsisLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (!timer.isRunning()){
+                if (status != "play"){
                     super.mouseClicked(e);
                     Point point = e.getPoint();
                     int x = (int)point.getX();
@@ -108,6 +114,7 @@ public class App {
                     resourceType = metaData[idx].getType();
                     showImage(resourcePath);
                     bgMusic.setStatus("null");
+                    status = "null";
                 }
             }
         });
@@ -166,6 +173,7 @@ public class App {
 
 
     private void showVideo(String imgPath){
+
         File tempFile = new File(imgPath.trim());
         String img = tempFile.getName();
         String imgDir = imgPath.substring(0, imgPath.lastIndexOf("/")+1);
@@ -188,29 +196,23 @@ public class App {
             }
         }
 
-        // Make sure ActionListener of timer is only defined once
-        if (flag){
-            timer.addActionListener(new ActionListener(){
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try{
-                        showImage(imgDir + files.get(index));
-                        index++;
-                        if (index == files.size()){
-                            index = 0;
-                            ((Timer)e.getSource()).stop();
-                        }
-                    } catch (Exception exc){
-                        exc.printStackTrace();
-                    }
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                showImage(imgDir + files.get(index));
+                index++;
+                if (index == files.size()){
+                    index = 0;
+                    timer.cancel();
+                    status = "null";
                 }
-            });
-            flag = false;
-        }
+            }
+        };
 
-        if (!timer.isRunning()){
+        if (status != "play"){
+            timer = new Timer();
+            timer.scheduleAtFixedRate(task, new Date(), 33);
             playMusic(resourcePath);
-            timer.start();
         }
     }
 
@@ -224,7 +226,7 @@ public class App {
     }
 
     public static void main(String[] args) {
-        frame = new JFrame("App");
+        frame = new JFrame("Synopsis");
         frame.setContentPane(new App().panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
