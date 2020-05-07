@@ -101,20 +101,34 @@ public class App {
         SynopsisLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (status != "play"){
-                    super.mouseClicked(e);
-                    Point point = e.getPoint();
-                    int x = (int)point.getX();
-                    int y = (int)point.getY();
-
-                    // Get resource index by location in synopsis image
-                    int idx = Math.floorDiv(x, 100) + Math.floorDiv(y, 100) * 10;
-                    resourcePath = metaData[idx].getPath();
-                    System.out.println(resourcePath);
-                    resourceType = metaData[idx].getType();
-                    showImage(resourcePath);
+                if (status == "play") {
+                    // Stop playing previous video
+                    timer.cancel();
+                    bgMusic.pause();
                     bgMusic.setStatus("null");
                     status = "null";
+                    index = 0;
+                }
+
+                super.mouseClicked(e);
+                Point point = e.getPoint();
+                int x = (int)point.getX();
+                int y = (int)point.getY();
+
+                // Get resource index by location in synopsis image
+                int idx = Math.floorDiv(x, 100) + Math.floorDiv(y, 100) * 10;
+                resourcePath = metaData[idx].getPath();
+                System.out.println(resourcePath);
+                resourceType = metaData[idx].getType();
+
+                // Button Only Available When Playing Video
+                if (resourceType == 'V'){
+                    // Start playing next video
+                    showVideo(resourcePath);
+                    status = "play";
+                }
+                if (resourceType == 'I') {
+                    showImage(resourcePath);
                 }
             }
         });
@@ -173,7 +187,6 @@ public class App {
 
 
     private void showVideo(String imgPath){
-
         File tempFile = new File(imgPath.trim());
         String img = tempFile.getName();
         String imgDir = imgPath.substring(0, imgPath.lastIndexOf("/")+1);
@@ -205,6 +218,7 @@ public class App {
                     index = 0;
                     timer.cancel();
                     status = "null";
+                    bgMusic.stop();
                 }
             }
         };
