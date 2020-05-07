@@ -48,7 +48,7 @@ public class App {
         MetaDataLoader metaDataLoader = new MetaDataLoader();
         metaDataLoader.loadMetaData("metadata.txt");
         metaData = metaDataLoader.getMetaData();
-        for (int i = 0; i < 20; i++)    metaData[i].showMetaData();
+//        for (int i = 0; i < 20; i++)    metaData[i].showMetaData();
 
 
         // Load Synopsis Image
@@ -101,7 +101,7 @@ public class App {
         SynopsisLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (status == "play") {
+                if (status == "play" || status == "pause") {
                     // Stop playing previous video
                     timer.cancel();
                     bgMusic.pause();
@@ -118,7 +118,7 @@ public class App {
                 // Get resource index by location in synopsis image
                 int idx = Math.floorDiv(x, 100) + Math.floorDiv(y, 100) * 10;
                 resourcePath = metaData[idx].getPath();
-                System.out.println(resourcePath);
+//                System.out.println(resourcePath);
                 resourceType = metaData[idx].getType();
 
                 // Button Only Available When Playing Video

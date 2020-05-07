@@ -35,7 +35,7 @@ public class PlaySound {
         try{
             int framePos = Integer.parseInt(imgPath.substring(imgPath.lastIndexOf("/")+7, imgPath.length()-4));
             clipTimePosition = (long)(framePos / 29.97 * 1000000);
-            System.out.println(clipTimePosition);
+//            System.out.println(clipTimePosition);
             String audioPath = imgPath.substring(0, imgPath.lastIndexOf("/")+1) + "audio.wav";
             File file = new File(audioPath);
             if (file.exists()){
@@ -63,7 +63,7 @@ public class PlaySound {
     }
 
     public void resume(){
-        System.out.println(clipTimePosition);
+//        System.out.println(clipTimePosition);
         clip.setMicrosecondPosition(clipTimePosition);
         clip.start();
         status = "play";
